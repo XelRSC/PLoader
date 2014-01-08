@@ -108,7 +108,7 @@ public class Ploader {
 		return compList;
 	}
 
-
+	//lol why is this here...
 	public void launchPlugin(final String[] args){
 		final String pluginPath = args[0];
 		final String jarName = args[1];
