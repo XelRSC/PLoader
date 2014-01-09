@@ -1,8 +1,6 @@
 package com.ploader;
 
 import java.awt.Component;
-import java.awt.Container;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -10,8 +8,6 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -37,23 +33,24 @@ public class Ploader {
 	private JTabbedPane orionTabbedPane;
 	private JMenuBar orionMenuBar;
 	private JMenuItem btnPluginloader;
-	private final Ploader ploader;
+	private static Ploader ploader;
+	private final Tools tools;
 	
-	public static void main(final String[] args){
-		new Ploader(args);
+	public static void main(final String[] args){		
+		ploader = new Ploader(args);	
 	}
 	
 	public Ploader(final String[] args){
-		ploader = this;
+		tools = new Tools();
 		//launchDebugger(); <- used to contain a System.out&System.err redirect, don't think people would care too much
 		
 		try {
 			orionBooter(args);		 				//Boot orion
 		} catch (final Exception e) {e.printStackTrace();}
 	
-		orionFrame = frameFinder("orion");  		//Get Orion JFrame
+		orionFrame = tools.frameFinder("orion");  		//Get Orion JFrame
 		
-		for(final Component c : getAllComponents(orionFrame))
+		for(final Component c : tools.getAllComponents(orionFrame))
 		{
 			if(c instanceof JTabbedPane){
 				orionTabbedPane = (JTabbedPane) c;  //Get Orion tabbedpane(pane on the right that contains plugins)
@@ -84,29 +81,6 @@ public class Ploader {
 	private void orionBooter(final String[] args) throws Exception{
 		Orion.main(args);
 	}
-	
-	private JFrame frameFinder(final String searchHint)			//Used for finding a frame which title contains searchHint
-	{
-		for(final Frame f : Frame.getFrames()){
-			if(f.getTitle().toLowerCase().contains(searchHint)){
-				return (JFrame)f;
-			}
-		}		
-		return null;
-	}
-
-	private List<Component> getAllComponents(final Container c) //Used for getting all components inside a container and children
-	{
-		final Component[] comps = c.getComponents();
-		final List<Component> compList = new ArrayList<Component>();
-		for(final Component comp : comps)
-		{
-			compList.add(comp);
-			if(comp instanceof Container)
-				compList.addAll(getAllComponents((Container)comp));
-		}
-		return compList;
-	}
 
 	//lol why is this here...
 	public void launchPlugin(final String[] args){
@@ -134,5 +108,13 @@ public class Ploader {
 			orionTabbedPane.addTab("", new ImageIcon(pluginPath + "\\icon.png"), jp);
 			
 		}catch(final Exception e){e.printStackTrace();}
+	}
+
+	public static Ploader getPloader() {
+		return ploader;
+	}
+
+	public Tools getTools() {
+		return tools;
 	}
 }
