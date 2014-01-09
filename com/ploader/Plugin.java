@@ -14,6 +14,10 @@ public abstract class Plugin {
 
 	public abstract Container gui();
 	
+	public abstract void update();
+	
+	public abstract boolean exit();
+	
 	public Tools getTools(){
 		return Ploader.getPloader().getTools();
 	}
