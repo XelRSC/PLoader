@@ -114,9 +114,8 @@ public class Ploader {
 		final URLClassLoader loader = new URLClassLoader(jUrl, getClass().getClassLoader());
 		
 		try{
-			final Class<?> cls = loader.loadClass(mainClass);
-			final Method getMethod = cls.getDeclaredMethod("gui");
-			
+			final Class<? extends Plugin> cls = (Class<? extends Plugin>) loader.loadClass(mainClass);
+			final Method getMethod = cls.getDeclaredMethod("gui");		
 			final Object clsInstance = cls.newInstance();
 			final Plugin plug = (Plugin)clsInstance;
 			final Object o = getMethod.invoke(clsInstance);
@@ -124,8 +123,6 @@ public class Ploader {
 			orionTabbedPane.addTab("", new ImageIcon(pluginPath + "\\icon.png"), jp);
 			
 			pluginMap.put(plug, jp);
-
-			
 			
 		}catch(final Exception e){e.printStackTrace();}
 	}
@@ -150,14 +147,16 @@ public class Ploader {
 						if(pair.getKey().exit()){
 							orionTabbedPane.remove(pair.getValue());
 							pluginMap.remove(pair.getKey());
-							continue;
+							break;
 						}else{
 							pair.getKey().update();
 						}
 					}
 				}
+				
 				Thread.sleep(1000);
 			}
+			
 			return null;
 		}
 	}
