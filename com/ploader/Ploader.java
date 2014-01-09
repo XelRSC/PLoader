@@ -111,7 +111,7 @@ public class Ploader {
 			e.printStackTrace();
 		}
 		
-		final URLClassLoader loader = new URLClassLoader(jUrl, System.class.getClassLoader());
+		final URLClassLoader loader = new URLClassLoader(jUrl, getClass().getClassLoader());
 		
 		try{
 			final Class<?> cls = loader.loadClass(mainClass);
