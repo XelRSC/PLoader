@@ -1,6 +1,7 @@
 package com.ploader;
 
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -8,14 +9,18 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 
 import com.rsbuddy.orion.Orion;
 
@@ -29,18 +34,21 @@ import com.rsbuddy.orion.Orion;
  */
 public class Ploader {
 
+	private UpdateWorker updWorker;
 	private final JFrame orionFrame;
 	private JTabbedPane orionTabbedPane;
 	private JMenuBar orionMenuBar;
 	private JMenuItem btnPluginloader;
 	private static Ploader ploader;
 	private final Tools tools;
+	private final HashMap<Plugin, Container> pluginMap = new HashMap<Plugin, Container>();
 	
 	public static void main(final String[] args){		
 		ploader = new Ploader(args);	
 	}
 	
 	public Ploader(final String[] args){
+
 		tools = new Tools();
 		//launchDebugger(); <- used to contain a System.out&System.err redirect, don't think people would care too much
 		
@@ -76,10 +84,17 @@ public class Ploader {
 				orionMenuBar.add(btnPluginloader); //Add pluginloader button to menubar
 				
 			}});
+		
+		pluginUpdate();
 	}
 	
 	private void orionBooter(final String[] args) throws Exception{
 		Orion.main(args);
+	}
+	
+	private void pluginUpdate(){
+		updWorker = new UpdateWorker();
+		updWorker.execute();
 	}
 
 	//lol why is this here...
@@ -103,9 +118,14 @@ public class Ploader {
 			final Method getMethod = cls.getDeclaredMethod("gui");
 			
 			final Object clsInstance = cls.newInstance();
+			final Plugin plug = (Plugin)clsInstance;
 			final Object o = getMethod.invoke(clsInstance);
-			final JPanel jp = (JPanel)o;
+			final Container jp = (Container)o;
 			orionTabbedPane.addTab("", new ImageIcon(pluginPath + "\\icon.png"), jp);
+			
+			pluginMap.put(plug, jp);
+
+			
 			
 		}catch(final Exception e){e.printStackTrace();}
 	}
@@ -117,4 +137,30 @@ public class Ploader {
 	public Tools getTools() {
 		return tools;
 	}
+	
+	class UpdateWorker extends SwingWorker<Void, Void>{
+
+		@Override
+		protected Void doInBackground() throws Exception {
+			while(!this.isCancelled()){
+				if(!pluginMap.isEmpty()){
+					final Iterator<Entry<Plugin, Container>> i = pluginMap.entrySet().iterator();
+					while(i.hasNext()){
+						final Map.Entry<Plugin, Container> pair = i.next();
+						if(pair.getKey().exit()){
+							orionTabbedPane.remove(pair.getValue());
+							pluginMap.remove(pair.getKey());
+							continue;
+						}else{
+							pair.getKey().update();
+						}
+					}
+				}
+				Thread.sleep(1000);
+			}
+			return null;
+		}
+	}
 }
+
+
